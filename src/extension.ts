@@ -51,6 +51,11 @@ export async function exportPack () {
   vscode.window.showInformationMessage('SFCI: Metadata exported');
   showNotification = false;
 }
+
+export async function convertToMdapi(uri: vscode.Uri){
+  console.log(uri);
+}
+
 export async function deployPack (uri:vscode.Uri) {
   showProgressNotification('SFCI: Deploying metadata');
   const wspaces = getRootPath();
@@ -177,7 +182,11 @@ export function activate (context: vscode.ExtensionContext) {
     deployPack(uri);
   });
 
-  context.subscriptions.push(contextMenuExp, contextMenuDeploy);
+  const contextMenuConvertMdapi = vscode.commands.registerCommand('sfci.classic.package.convertmdapi', (uri:vscode.Uri) => { 
+    convertToMdapi(uri);
+  });
+
+  context.subscriptions.push(contextMenuExp, contextMenuDeploy, contextMenuConvertMdapi);
 }
 
 // this method is called when your extension is deactivated

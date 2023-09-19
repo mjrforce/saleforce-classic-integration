@@ -24,6 +24,10 @@
 			{
 				"command": "sfci.classic.package.deploy",
 				"title": "SFCI: Deploy Classic Metadata"
+			},
+			{
+				"command": "sfci.classic.package.convertmdapi",
+				"title": "SFCI: Convert to MDAPI"
 			}
 		],
 		"menus": {
