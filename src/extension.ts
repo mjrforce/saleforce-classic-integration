@@ -52,7 +52,7 @@ export async function exportPack () {
   showNotification = false;
 }
 
-export async function mergeToMdapi(uris: Array<vscode.Uri>) {
+export async function mergeToMdapi (uris: Array<vscode.Uri>) {
   showProgressNotification('SFCI: Merging Source into Mdapi...');
   const wspaces = getRootPath();
   const wspath = wspaces.fsPath;
@@ -93,7 +93,6 @@ export async function convertToSFDX (uris: Array<vscode.Uri>) {
 }
 
 export async function convertToMdapi (uris: Array<vscode.Uri>) {
-  showProgressNotification('SFCI: Converting Source into Mdapi...');
   const wspaces = getRootPath();
   const wspath = wspaces.fsPath;
   outputChannel.show();
