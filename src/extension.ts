@@ -52,8 +52,69 @@ export async function exportPack () {
   showNotification = false;
 }
 
-export async function convertToMdapi(uri: vscode.Uri){
-  console.log(uri);
+export async function mergeToMdapi(uris: Array<vscode.Uri>) {
+  showProgressNotification('SFCI: Merging Source into Mdapi...');
+  const wspaces = getRootPath();
+  const wspath = wspaces.fsPath;
+  outputChannel.show();
+  const _source = workingwithpath.normalize(`${homedir}/.sfci/source/`);
+  const _output = workingwithpath.normalize(`${homedir}/.sfci/output/`);
+  uris.forEach(async function (file) {
+    const copyto = vscode.Uri.file(_source + file.fsPath.replace(wspath, ''));
+    await vscode.workspace.fs.copy(file, copyto);
+  });
+  const { stdout } = await exec(`sf project convert source --root-dir ${_source} --output-dir ${_output}`);
+  await trash(_source);
+  await trash(_output);
+  outputChannel.append(stdout);
+}
+
+export async function convertToSFDX (uris: Array<vscode.Uri>) {
+  const wspaces = getRootPath();
+  const wspath = wspaces.fsPath;
+  outputChannel.show();
+  try {
+    const _source = workingwithpath.normalize(`${homedir}/.sfci/source/`);
+    const _output = workingwithpath.normalize(wspath + '/convert/source/');
+    uris.forEach(async function (file) {
+      const copyto = vscode.Uri.file(_source + file.fsPath.replace(wspath, ''));
+      await vscode.workspace.fs.copy(file, copyto);
+    });
+    const { stdout } = await exec(`sf project convert mdapi --root-dir ${_source} --output-dir ${_output}`);
+    await trash(_source);
+    outputChannel.append(stdout);
+  } catch (error) {
+    vscode.window.showInformationMessage('SFCI: Error during metadata exporting process');
+    outputChannel.append(error);
+    showNotification = false;
+  }
+  vscode.window.showInformationMessage('SFCI: Metadata converted to source format');
+  showNotification = false;
+}
+
+export async function convertToMdapi (uris: Array<vscode.Uri>) {
+  showProgressNotification('SFCI: Converting Source into Mdapi...');
+  const wspaces = getRootPath();
+  const wspath = wspaces.fsPath;
+  outputChannel.show();
+  let showNotification = true;
+  try {
+    const _source = workingwithpath.normalize(`${homedir}/.sfci/source/`);
+    const _output = workingwithpath.normalize(wspath + '/convert/mdapi/');
+    uris.forEach(async function (file) {
+      const copyto = vscode.Uri.file(_source + file.fsPath.replace(wspath, ''));
+      await vscode.workspace.fs.copy(file, copyto);
+    });
+    const { stdout } = await exec(`sf project convert source --root-dir ${_source} --output-dir ${_output}`);
+    await trash(_source);
+    outputChannel.append(stdout);
+  } catch (error) {
+    vscode.window.showInformationMessage('SFCI: Error during metadata exporting process');
+    outputChannel.append(error);
+    showNotification = false;
+  }
+  vscode.window.showInformationMessage('SFCI: Metadata converted to Mdapi');
+  showNotification = false;
 }
 
 export async function deployPack (uri:vscode.Uri) {
@@ -121,6 +182,7 @@ function getRootPath ():vscode.Uri {
     return vscode.Uri.parse(workingwithpath.normalize(`${__dirname}/../`));
   }
 }
+
 async function getDefaultOrg (rootFolder: string) {
   let userOrorg = `${NO_DEFAUL_ORG}`;
 
@@ -182,11 +244,19 @@ export function activate (context: vscode.ExtensionContext) {
     deployPack(uri);
   });
 
-  const contextMenuConvertMdapi = vscode.commands.registerCommand('sfci.classic.package.convertmdapi', (uri:vscode.Uri) => { 
-    convertToMdapi(uri);
+  const contextMenuConvertMdapi = vscode.commands.registerCommand('sfci.classic.package.convertmdapi', (...commandArgs) => { 
+    convertToMdapi(commandArgs[1]);
   });
 
-  context.subscriptions.push(contextMenuExp, contextMenuDeploy, contextMenuConvertMdapi);
+  const contextMergeToMdapi = vscode.commands.registerCommand('sfci.classic.package.mergetomdapi', (...commandArgs) => { 
+    mergeToMdapi(commandArgs[1]);
+  });
+
+  const contextConvertSFDX = vscode.commands.registerCommand('sfci.classic.package.convertsfdx', (...commandArgs) => { 
+    convertToSFDX(commandArgs[1]);
+  });
+
+  context.subscriptions.push(contextMenuExp, contextMenuDeploy, contextMergeToMdapi, contextMenuConvertMdapi, contextConvertSFDX);
 }
 
 // this method is called when your extension is deactivated
